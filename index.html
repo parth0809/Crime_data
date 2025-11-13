@@ -25,6 +25,7 @@
     padding: 12px 0;
     height: 100%;
     border-right: 1px solid #16324a;
+    box-sizing: border-box; /* Added for better layout consistency */
   }
   .tab-button {
     padding: 16px 20px;
@@ -37,6 +38,7 @@
     cursor: pointer;
     text-align: left;
     border-right: 3px solid transparent;
+    box-sizing: border-box; /* Added for better layout consistency */
   }
   .tab-button.active {
     color: #e6eef8;
@@ -64,7 +66,9 @@
     display:grid; 
     grid-template-columns:300px 1fr; 
     gap:12px; 
-    padding:12px; 
+    padding:12px;
+    height: 100%; /* Added for flex consistency */
+    box-sizing: border-box; /* Added */
   }
   .panel { background:#071428; padding:12px; border-radius:8px; overflow:auto; }
   .plot { background:#081226; border-radius:8px; padding:10px; }
@@ -121,7 +125,7 @@
     margin-bottom: 24px; /* Space between image groups */
   }
 
-  /* NEW: Subheading style for image groups */
+  /* Subheading style for image groups */
   .vis-container h3 {
     color: #9ec7ff;
     font-size: 1.4em;
@@ -131,7 +135,7 @@
     border-left: 4px solid #3b82f6;
   }
 
-  /* NEW: Keyframes for animation */
+  /* Keyframes for animation */
   @keyframes fadeInSlideUp {
       from {
           opacity: 0;
@@ -143,10 +147,113 @@
       }
   }
 
-  /* NEW: Class for animated items */
+  /* Class for animated items */
   .vis-item {
       animation: fadeInSlideUp 0.6s ease-out;
   }
+
+  /* --- START: RESPONSIVE STYLES --- */
+  @media (max-width: 768px) {
+    body {
+      overflow: auto; /* Allow body to scroll on mobile */
+    }
+
+    header {
+      padding: 12px 16px;
+    }
+    
+    h1 {
+      font-size: 16px; /* Slightly smaller title */
+    }
+
+    /* Change main layout to stack nav and content */
+    .main-layout {
+      grid-template-columns: 1fr; /* Single column */
+      height: auto; /* Allow height to be determined by content */
+      display: flex; /* Use flex for more control */
+      flex-direction: column;
+      min-height: calc(100vh - 56px); /* Fill screen */
+    }
+
+    /* Convert vertical nav to horizontal bar */
+    .tab-nav {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      height: auto;
+      width: 100%;
+      padding: 0;
+      border-right: none;
+      border-bottom: 1px solid #16324a;
+      flex-shrink: 0; /* Prevent nav from shrinking */
+    }
+
+    .tab-button {
+      flex: 1; /* Make buttons share space */
+      text-align: center;
+      padding: 14px 8px; /* Adjust padding for horizontal */
+      font-size: 14px;
+      border-right: none;
+      border-bottom: 3px solid transparent; /* New active indicator */
+    }
+
+    .tab-button.active {
+      border-right-color: transparent; /* Remove old border */
+      border-bottom-color: #3b82f6; /* Use new border */
+      background: #071428;
+    }
+
+    .content-wrapper {
+      height: auto; /* Let content determine height */
+      flex-grow: 1; /* Allow content to fill remaining space */
+    }
+
+    /* Stack controls on top of plot */
+    .container {
+      grid-template-columns: 1fr;
+      padding: 8px;
+      height: auto; /* Allow it to grow */
+    }
+    
+    /* Override the inline min-height for the plot on mobile */
+    #plot {
+      min-height: 450px !important; 
+    }
+    
+    /* Adjust padding for static pages */
+    .page-container {
+      padding: 16px;
+    }
+    
+    .page-container h2 { font-size: 1.5em; }
+    .page-container p, .page-container li { font-size: 1em; }
+
+    /* Stack download buttons */
+    .download-button {
+      display: block;
+      width: 100%;
+      margin-right: 0;
+      margin-bottom: 10px;
+      box-sizing: border-box; /* Include padding in 100% width */
+    }
+  }
+
+  @media (max-width: 480px) {
+    .tab-button {
+      font-size: 12px; /* Even smaller font for tabs */
+      padding: 12px 5px; /* Tighter padding */
+    }
+
+    /* Further reduce plot height for small phones */
+    #plot {
+      min-height: 400px !important;
+    }
+    
+    .vis-container h3 {
+      font-size: 1.2em;
+    }
+  }
+  /* --- END: RESPONSIVE STYLES --- */
 
 </style>
 </head>
@@ -179,10 +286,7 @@
           <label>2. Render Chart</label>
           <button id="btnRender">Render / Rebuild Animation</button>
           
-          <hr/>
-          <label>...or Upload different CSV</label>
-          <input id="fileInput" type="file" accept=".csv" />
-        </div>
+          </div>
 
         <div class="plot panel" id="plotPanel">
           <div id="plot" style="width:100%;height:100%;min-height:620px;">
@@ -222,7 +326,7 @@
         </div>
         
         <div class="vis-item">
-          <img src="images/plot_10_top_states_violent_crime_2017.png" alt="Top 10 States/UTs by Total Violent Crimes (2017)">
+          <img src="images/plot_10_top_states_violent_crime_2017.png" alt="Top 10 States/UTs by Total Violent Crimes (2D017)">
           <p class="caption">Top 10 States/UTs by Total Violent Crimes (2017)</p>
         </div>
 
@@ -272,7 +376,7 @@
     </div>
 
     <div id="about" class="tab-content">
-      <div classs="page-container">
+      <div class="page-container">
         <h2>About This Project</h2>
         <p>This project is a 3D animated visualization of crime statistics in India from 2001 to 2022. It is designed to provide an interactive way to explore trends in various crime categories over time.</p>
         
@@ -312,7 +416,7 @@
     event.currentTarget.classList.add('active');
   }
   // Set the default tab to be open
-  document.getElementById('analysis').classList.add('active');
+  // document.getElementById('analysis').classList.add('active'); // This is handled by default in the HTML
 </script>
 
 <script>
@@ -356,7 +460,7 @@ function processData(csvText) {
     
     // Check if CSV parsing was successful
     if (!dataset.length || !headers.includes('Year')) {
-        plotMessage.innerHTML = "File error: CSV must have a 'Year' column. Please upload a valid file.";
+        plotMessage.innerHTML = "File error: CSV must have a 'Year' column. Please check the `summary_data.csv` file.";
         dataset = [];
         headers = [];
         return false;
@@ -395,127 +499,273 @@ async function tryLoadDefaultCSV() {
         processData(text);
     } catch (err) {
         console.error("Could not auto-load data.csv:", err);
-        plotMessage.innerHTML = "Could not find `data.csv`. Please upload the file manually using the button on the left.";
+        plotMessage.innerHTML = "Could not find `summary_data.csv`. Please make sure the file is in the same folder.";
     }
 }
 
 // build frames for plotly
-function buildFrames(category){
-  const frames = [];
-  
-  // 1. Get X and Y data
-  const xs = dataset.map(row => Number(row['Year']));
-  const ys = dataset.map(row => parseAsNumber(row[category])); // Get data from the selected column
-      
-  if (!ys.length) {
-      alert(`No data found for category: "${category}"`);
-      return { frames: [], allTrace: null };
-  }
+// build frames for plotly
+function buildFrames(category) {
+    const frames = [];
 
-  const yValues = ys.filter(v => v > 0);
-  const yMin = yValues.length > 0 ? Math.min(...yValues) : 0;
-  const yMax = yValues.length > 0 ? Math.max(...yValues) : 1;
+    // 1. Get X and Y data
+    const xs = dataset.map(row => Number(row['Year']));
+    const ys = dataset.map(row => parseAsNumber(row[category])); // Get data from the selected column
 
-  // 2. Create frames for animation
-  xs.forEach((year, i) => {
-    const yVal = ys[i];
-    frames.push({
-      name: year.toString(),
-      data: [{
-        x: [year],
-        y: [yVal],
-        z: [0],
-        mode: 'markers',
-        marker: { 
-          size: 20, 
-          color: yVal, 
-          colorscale: 'Reds',
-          showscale: true,
-          cmin: yMin,
-          cmax: yMax
-        },
-        text: [`${year}: ${yVal.toLocaleString()}`]
-      }]
+    if (!ys.length) {
+        alert(`No data found for category: "${category}"`);
+        return {
+            frames: [],
+            xs: [],
+            ys: [],
+            yMin: 0,
+            yMax: 1
+        };
+    }
+
+    const yValues = ys.filter(v => v > 0);
+    const yMin = yValues.length > 0 ? Math.min(...yValues) : 0;
+    const yMax = yValues.length > 0 ? Math.max(...yValues) : 1;
+
+    // 2. Create frames for animation
+    xs.forEach((year, i) => {
+
+        // --- Frame Data for Trace 0 (Background) ---
+        const backgroundData = {};
+
+        // --- Frame Data for Trace 1 (Visited Line) ---
+        const visitedLineData = {
+            x: xs.slice(0, i + 1),
+            y: ys.slice(0, i + 1)
+            // z: removed
+        };
+
+        // --- Frame Data for Trace 2 (Current Marker) ---
+        const currentMarkerData = {
+            x: [year],
+            y: [ys[i]],
+            // z: removed
+            text: [ys[i].toLocaleString()],
+            marker: {
+                size: 18,
+                color: ys[i], // Color updates with value
+                colorscale: 'Reds',
+                showscale: false,
+                cmin: yMin,
+                cmax: yMax
+            }
+        };
+
+        frames.push({
+            name: year.toString(),
+            data: [backgroundData, visitedLineData, currentMarkerData]
+        });
     });
-  });
 
-  // 3. Create the background trace
-  const allTrace = {
-    x: xs, 
-    y: ys, 
-    z: xs.map(()=>0),
-    mode:'markers+lines',
-    text: xs.map((y,i) => `${y}: ${ys[i].toLocaleString()}`),
-    hoverinfo: 'text',
-    marker:{ 
-      size: 8, 
-      opacity:0.5,
-      color: ys,
-      colorscale: 'Reds',
-      cmin: yMin,
-      cmax: yMax
-    },
-    line:{ width:2, color:'#9fb7db' },
-    name: category
-  };
-
-  return {frames, allTrace};
+    // Return all data needed by renderPlot
+    return {
+        frames,
+        xs,
+        ys,
+        yMin,
+        yMax
+    };
 }
 
 // render plotly animation
-function renderPlot(category){
-  plotMessage.innerHTML = ''; // Clear any messages
-  const {frames, allTrace} = buildFrames(category);
-  
-  if (!allTrace) return; // Don't render if no data
+// render plotly animation
+function renderPlot(category) {
+    plotMessage.innerHTML = ''; // Clear any messages
 
-  const sortedYears = allTrace.x.sort((a,b) => a - b);
+    // Get all data from buildFrames
+    const {
+        frames,
+        xs,
+        ys,
+        yMin,
+        yMax
+    } = buildFrames(category);
 
-  const layout = {
-    paper_bgcolor: '#081226', /* Match plot panel */ 
-    plot_bgcolor:'#081226',
-    font: { color: '#e6eef8' },
-    scene: {
-      xaxis:{ title:'Year', color:'#cfe3ff', gridcolor:'#16324a' },
-      yaxis:{ title: category.replace(/_/g,' '), color:'#cfe3ff', gridcolor:'#16324a', autorange:true, type: 'linear' },
-      zaxis:{ title:'Z (unused)', color:'#cfe3ff', gridcolor:'#16324a', range: [-1, 1] }, // Lock Z-axis
-      camera:{ eye: {x:1.7, y:1.2, z:0.8} }
-    },
-    title: `Animated: ${category.replace(/_/g,' ')} (2001–2022)`,
-    updatemenus: [{
-      y:1, x:0.8, showactive:false,
-      type:'buttons', buttons:[
-        {label:'Play', method:'animate', args:[null,{fromcurrent:true, frame:{duration:233, redraw:false}, transition:{duration:100}}]},
-        {label:'Pause', method:'animate', args:[[null], {mode:'immediate', frame:{duration:0}, transition:{duration:0}}]}
-      ]
-    }],
-    sliders:[{
-      pad:{t:30}, currentvalue:{prefix:'Year: '},
-      steps: sortedYears.map((y, i)=>({ label:y, method:'animate', args:[[y.toString()], {mode:'immediate', frame:{duration:300, redraw:false}, transition:{duration:200}}] }))
-    }]
-  };
+    if (!frames.length) return; // Don't render if no data
 
-  const data = [allTrace];
-  const initial = frames[0] ? frames[0].data : [];
+    const sortedYears = [...xs].sort((a, b) => a - b);
 
-  Plotly.newPlot('plot', data.concat(initial), layout).then(() => {
-    Plotly.addFrames('plot', frames);
-  });
+    // --- DEFINE INITIAL TRACES (for the first frame) ---
+
+    // Trace 0: The faint background "future" path
+    const backgroundTrace = {
+        x: xs,
+        y: ys,
+        // z: removed
+        mode: 'lines',
+        line: {
+            width: 2,
+            color: '#16324a'
+        }, // Faint gridline color
+        type: 'scatter', // CHANGED
+        name: 'Full Path',
+        hoverinfo: 'none'
+    };
+
+    // Trace 1: The "visited" path (starts at frame 0)
+    const initialVisitedLine = {
+        x: [xs[0]], // Start with only the first point
+        y: [ys[0]],
+        // z: removed
+        mode: 'lines',
+        line: {
+            width: 4,
+            color: '#3b82f6'
+        }, // Bright "visited" color
+        type: 'scatter', // CHANGED
+        name: 'Visited Path'
+    };
+
+    // Trace 2: The current marker (starts at frame 0)
+    const initialCurrentMarker = {
+        x: [xs[0]],
+        y: [ys[0]],
+        // z: removed
+        mode: 'markers+text',
+        text: [ys[0].toLocaleString()],
+        textposition: 'top center',
+        textfont: {
+            color: '#e6eef8',
+            size: 12
+        },
+        marker: {
+            size: 18,
+            color: ys[0],
+            colorscale: 'Reds',
+            showscale: false,
+            cmin: yMin,
+            cmax: yMax
+        },
+        type: 'scatter', // CHANGED
+        name: xs[0].toString()
+    };
+
+    // Combine all three traces into the initial data array
+    const initialData = [backgroundTrace, initialVisitedLine, initialCurrentMarker];
+
+    const layout = {
+        paper_bgcolor: '#081226',
+        plot_bgcolor: '#081226',
+        font: {
+            color: '#e6eef8'
+        },
+
+        // --- REPLACED 'scene' WITH 2D AXES ---
+        xaxis: {
+            title: 'Year',
+            color: '#cfe3ff',
+            gridcolor: '#16324a'
+        },
+        yaxis: {
+            title: category.replace(/_/g, ' '),
+            color: '#cfe3ff',
+            gridcolor: '#16324a',
+            autorange: true,
+            type: 'linear'
+        },
+        // --- END OF AXES ---
+
+        title: `Animated: ${category.replace(/_/g,' ')} (2001–2022)`,
+        margin: {
+            l: 50,
+            r: 80,
+            b: 40,
+            t: 80
+        },
+        updatemenus: [{
+            y: 1,
+            x: 0.8,
+            showactive: false,
+            type: 'buttons',
+            buttons: [{
+                label: 'Play',
+                method: 'animate',
+                args: [null, {
+                    fromcurrent: true,
+                    frame: {
+                        duration: 233,
+                        redraw: false
+                    },
+                    transition: {
+                        duration: 100
+                    }
+                }]
+            }, {
+                label: 'Pause',
+                method: 'animate',
+                args: [
+                    [null], {
+                        mode: 'immediate',
+                        frame: {
+                            duration: 0
+                        },
+                        transition: {
+                            duration: 0
+                        }
+                    }
+                ]
+            }]
+        }],
+        sliders: [{
+            pad: {
+                t: 30
+            },
+            currentvalue: {
+                prefix: 'Year: '
+            },
+            steps: sortedYears.map((y) => ({
+                label: y,
+                method: 'animate',
+                args: [
+                    [y.toString()], {
+                        mode: 'immediate',
+                        frame: {
+                            duration: 300,
+                            redraw: false
+                        },
+                        transition: {
+                            duration: 200
+                        }
+                    }
+                ]
+            }))
+        }],
+        showlegend: false
+    };
+
+    // Make layout responsive
+    if (window.innerWidth < 768) {
+        layout.title = category.replace(/_/g, ' ');
+        layout.margin = {
+            l: 10,
+            r: 10,
+            b: 40,
+            t: 40
+        };
+        // REMOVED: layout.scene.camera.eye
+        layout.font.size = 10;
+        layout.updatemenus[0].x = 0.5;
+        layout.updatemenus[0].y = 0.95;
+    }
+
+    Plotly.newPlot('plot', initialData, layout, {
+        responsive: true
+    }).then(() => {
+        Plotly.addFrames('plot', frames);
+    });
 }
 
-// wire up file input
-document.getElementById('fileInput').addEventListener('change', async (ev)=>{
-  const f = ev.target.files[0];
-  if(f) {
-      const text = await f.text();
-      processData(text);
-  }
-});
+// REMOVED FILE INPUT EVENT LISTENER
 
 // wire up render button
 document.getElementById('btnRender').addEventListener('click', () => {
     if(dataset.length === 0){
-        alert("No data loaded. Please upload your data.csv file.");
+        alert("No data loaded. Please make sure `summary_data.csv` is in the same folder.");
         return;
     }
     const category = document.getElementById('categorySelect').value;
@@ -528,6 +778,16 @@ document.getElementById('btnRender').addEventListener('click', () => {
 
 // Call the auto-load function when the script runs
 tryLoadDefaultCSV();
+
+// Re-render plot on window resize
+window.addEventListener('resize', () => {
+    const category = document.getElementById('categorySelect').value;
+    if (category && dataset.length > 0) {
+        // A simple re-layout might be enough, but re-rendering ensures
+        // all layout logic (like mobile checks) is re-run.
+        renderPlot(category);
+    }
+});
 
 </script>
 </body>
