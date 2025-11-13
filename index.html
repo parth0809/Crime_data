@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>India Crime 2001-2022 — 3D Visualizer</title>
+
+<script src="https://cdn.plot.ly/plotly-2.25.1.min.js"></script>
+
+<style>
+  body { font-family: Inter, system-ui, sans-serif; margin:0; background:#0f172a; color:#e6eef8; overflow: hidden; }
+  header { padding:12px 20px; display:flex; gap:12px; align-items:center; background:linear-gradient(90deg,#071030,#0b1a33); height: 32px; /* 56px total height with padding */ }
+  h1 { margin:0; font-size:18px; }
+
+  /* Main layout: Vertical Nav + Content Area */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 200px 1fr; /* 200px for nav, rest for content */
+    height: calc(100vh - 56px);
+  }
+  
+  /* Tab Navigation */
+  .tab-nav {
+    background: #0b1a33;
+    padding: 12px 0;
+    height: 100%;
+    border-right: 1px solid #16324a;
+  }
+  .tab-button {
+    padding: 16px 20px;
+    display: block;
+    width: 100%;
+    border: none;
+    background: none;
+    color: #9fb7db;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: left;
+    border-right: 3px solid transparent;
+  }
+  .tab-button.active {
+    color: #e6eef8;
+    border-right-color: #3b82f6;
+    background: #0f172a; /* Match body background */
+  }
+  .tab-button:hover {
+    background: #071428;
+  }
+
+  /* Content Area */
+  .content-wrapper {
+    height: 100%;
+    overflow-y: auto; /* Allow content to scroll */
+  }
+  .tab-content {
+    display: none; /* Hidden by default */
+  }
+  .tab-content.active {
+    display: block; /* Shown when active */
+  }
+
+  /* Layout for Analysis Tab */
+  .container { 
+    display:grid; 
+    grid-template-columns:300px 1fr; 
+    gap:12px; 
+    padding:12px; 
+  }
+  .panel { background:#071428; padding:12px; border-radius:8px; overflow:auto; }
+  .plot { background:#081226; border-radius:8px; padding:10px; }
+  
+  /* Layout for About/Download Tab */
+  .page-container {
+    padding: 24px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .page-container h2 { color: #cfe3ff; border-bottom: 1px solid #16324a; padding-bottom: 8px; }
+  .page-container p { font-size: 1.1em; line-height: 1.6; color: #b0c4de; }
+  .page-container a { color: #9ec7ff; }
+  .page-container ul { list-style: none; padding-left: 0; }
+  .page-container li { font-size: 1.2em; color: #cfe3ff; margin-bottom: 10px; }
+
+  /* Form Elements */
+  label { display:block; margin-top:8px; font-size:13px; color:#cfe3ff }
+  select,input[type=file],button { width:100%; margin-top:6px; padding:8px; border-radius:6px; border:1px solid #16324a; background:#082033; color:#e6eef8; }
+  small { color:#9fb7db }
+
+  /* Download Button Style */
+  .download-button {
+    display: inline-block;
+    text-decoration: none;
+    font-size: 1em;
+    margin-top: 10px;
+    margin-right: 10px;
+    padding: 10px 15px; 
+    border-radius: 6px; 
+    border: 1px solid #16324a; 
+    background: #082033; 
+    color: #e6eef8;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .download-button:hover {
+    background: #16324a;
+  }
+  
+  /* Styling for visualization images */
+  .vis-container img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid #16324a;
+  }
+
+  .vis-container .caption {
+    text-align: center;
+    font-style: italic;
+    color: #b0c4de;
+    margin-top: 8px;
+    margin-bottom: 24px; /* Space between image groups */
+  }
+
+  /* NEW: Subheading style for image groups */
+  .vis-container h3 {
+    color: #9ec7ff;
+    font-size: 1.4em;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    padding-left: 10px;
+    border-left: 4px solid #3b82f6;
+  }
+
+  /* NEW: Keyframes for animation */
+  @keyframes fadeInSlideUp {
+      from {
+          opacity: 0;
+          transform: translateY(20px);
+      }
+      to {
+          opacity: 1;
+          transform: translateY(0);
+      }
+  }
+
+  /* NEW: Class for animated items */
+  .vis-item {
+      animation: fadeInSlideUp 0.6s ease-out;
+  }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>India Crime (2001–2022) — 3D Visualizer</h1>
+</header>
+
+<div class="main-layout">
+  <div class="tab-nav">
+    <button class="tab-button active" onclick="openTab('analysis')">Analysis</button>
+    <button class="tab-button" onclick="openTab('visualization')">Visualization of Dataset</button>
+    <button class="tab-button" onclick="openTab('download')">Download</button>
+    <button class="tab-button" onclick="openTab('about')">About Us</button>
+  </div>
+
+  <div class="content-wrapper">
+    <div id="analysis" class="tab-content active">
+      <div class="container">
+        <div class="panel" id="leftPanel">
+          <strong>Controls</strong>
+          <p><small>Automatically loading `data.csv`...</small></p>
+
+          <label>1. Choose category</label>
+          <select id="categorySelect">
+            <option>Loading...</option>
+          </select>
+          
+          <label>2. Render Chart</label>
+          <button id="btnRender">Render / Rebuild Animation</button>
+          
+          <hr/>
+          <label>...or Upload different CSV</label>
+          <input id="fileInput" type="file" accept=".csv" />
+        </div>
+
+        <div class="plot panel" id="plotPanel">
+          <div id="plot" style="width:100%;height:100%;min-height:620px;">
+              <div id="plot-message" style="padding:40px; color:#9fb7db;">Loading data.csv...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="visualization" class="tab-content">
+      <div class="page-container vis-container">
+        <h2>Dataset Visualizations</h2>
+        <p>This section displays various analyses and visualizations derived from the crime dataset.</p>
+        
+        <h3>Crime Against Women</h3>
+        
+        <div class="vis-item">
+          <img src="images/crime_against_women_2017-2021.jpeg" alt="Total Crimes Against Women (2017-2021)">
+          <p class="caption">Total Crimes Against Women (2017-2021)</p>
+        </div>
+
+        <div class="vis-item">
+          <img src="images/treand_of_Rape_case_2015-21.jpeg" alt="Trend of Rape Cases (2015-2021)">
+          <p class="caption">Trend of Rape Cases (2015-2021)</p>
+        </div>
+
+        <h3>Murder & Violent Crime</h3>
+
+        <div class="vis-item">
+          <img src="images/plot_02_murder_trend_2001_2010.png" alt="Murder by Gender (2001-2010)">
+          <p class="caption">Murder by Gender (2001-2010)</p>
+        </div>
+
+        <div class="vis-item">
+          <img src="images/plot_19_murder_vs_rape_cities_2022.png" alt="Murder vs. Rape Incidents in Metropolitan Cities (2022)">
+          <p class="caption">Murder vs. Rape Incidents in Metropolitan Cities (2022)</p>
+        </div>
+        
+        <div class="vis-item">
+          <img src="images/plot_10_top_states_violent_crime_2017.png" alt="Top 10 States/UTs by Total Violent Crimes (2017)">
+          <p class="caption">Top 10 States/UTs by Total Violent Crimes (2017)</p>
+        </div>
+
+        <h3>General Crime Rates & Trends</h3>
+
+        <div class="vis-item">
+          <img src="images/top_5_crimes_per_state_2022.jpeg" alt="Top 5 states by total crime per 100k population (2022)">
+          <p class="caption">Top 5 states by total crime per 100k population (2022)</p>
+        </div>
+
+        <div class="vis-item">
+          <img src="images/plot_01_total_crimes_2001_2010.png" alt="Total Cognizable Crimes by Gender (2001-2010)">
+          <p class="caption">Total Cognizable Crimes by Gender (2001-2010)</p>
+        </div>
+
+        <h3>Case Pendency & Disposal</h3>
+
+        <div class="vis-item">
+          <img src="images/plot_08_pendency_rate_2016.png" alt="Pendency Percentage for Violent Crimes (2016)">
+          <p class="caption">Pendency Percentage for Violent Crimes (2016)</p>
+        </div>
+
+        <div class="vis-item">
+          <img src="images/plot_14_child_crime_disposal_2019.png" alt="Disposal of Total Crimes Against Children by Police (2019)">
+          <p class="caption">Disposal of Total Crimes Against Children by Police (2019)</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="download" class="tab-content">
+      <div class="page-container">
+        <h2>Downloads</h2>
+        <p>Download the project report, the summary dataset used for the visualizer, or the complete raw dataset.</p>
+        
+        <a href="report.pdf" download="Crime_in_India_Report.pdf" class="download-button">
+          Download Report
+        </a>
+        
+        <a href="summary_data.csv" download="Yearly_Summary_Data.csv" class="download-button">
+          Download Summary Yearly Dataset
+        </a>
+        
+        <a href="Crime_Data.json" download="Crime_data.json" class="download-button">
+          Download Crime_data.json Full Dataset
+        </a>
+      </div>
+    </div>
+
+    <div id="about" class="tab-content">
+      <div classs="page-container">
+        <h2>About This Project</h2>
+        <p>This project is a 3D animated visualization of crime statistics in India from 2001 to 2022. It is designed to provide an interactive way to explore trends in various crime categories over time.</p>
+        
+        <h2>Project Creators - Group 1</h2>
+        <ul>
+          <li>Anuj Yadav</li>
+          <li>Parth Upadhyay</li>
+          <li>Sumit</li>
+        </ul>
+        
+        <h2>Data Source</h2>
+        <p>The data used in this visualization is based on official statistics compiled by the <strong>National Crime Records Bureau (NCRB)</strong>, Ministry of Home Affairs, Government of India.</p>
+        <p>For more detailed information or to access the original reports, please refer to the official NCRB website.</p>
+        <p><a href="httpsncrb.gov.in/" target="_blank">Visit NCRB Official Website</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  function openTab(tabName) {
+    // Hide all tab content
+    const tabContents = document.getElementsByClassName('tab-content');
+    for (let i = 0; i < tabContents.length; i++) {
+      tabContents[i].classList.remove('active');
+    }
+    
+    // Deactivate all tab buttons
+    const tabButtons = document.getElementsByClassName('tab-button');
+    for (let i = 0; i < tabButtons.length; i++) {
+      tabButtons[i].classList.remove('active');
+    }
+    
+    // Show the current tab and activate its button
+    document.getElementById(tabName).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+  // Set the default tab to be open
+  document.getElementById('analysis').classList.add('active');
+</script>
+
+<script>
+const DEFAULT_FILE = 'summary_data.csv';
+let dataset = []; // This will be an array of objects from the CSV
+let headers = []; // This will store the column headers
+const plotDiv = document.getElementById('plot');
+const plotMessage = document.getElementById('plot-message');
+
+// simple CSV parser
+function parseCSV(text){
+  const lines = text.trim().split(/\r?\n/).map(l=>l.trim());
+  const headerLine = lines.shift();
+  // Clean headers: remove quotes, spaces
+  headers = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
+  
+  const rows = lines.map(l => {
+    // This split logic is safer for values that might contain commas
+    const vals = l.split(',').map(v=>v.trim());
+    const obj = {};
+    headers.forEach((h,i)=> obj[h]=vals[i]);
+    return obj;
+  });
+  return rows;
+}
+
+// Helper to convert CSV values to numbers (handles scientific notation, nulls)
+function parseAsNumber(value) {
+    if (value === null || value === undefined || value === "") return 0;
+    // Try to parse scientific notation
+    if (String(value).includes('e+')) {
+        return Number.parseFloat(value);
+    }
+    // Remove commas, then parse
+    return Number.parseFloat(String(value).replace(/,/g, '')) || 0;
+}
+
+// Process the loaded data (from fetch or upload)
+function processData(csvText) {
+    dataset = parseCSV(csvText);
+    
+    // Check if CSV parsing was successful
+    if (!dataset.length || !headers.includes('Year')) {
+        plotMessage.innerHTML = "File error: CSV must have a 'Year' column. Please upload a valid file.";
+        dataset = [];
+        headers = [];
+        return false;
+    }
+    
+    // Populate the dropdown
+    populateSelect();
+    plotMessage.innerHTML = "Data loaded. Please select a category and click Render.";
+    return true;
+}
+
+// Populate the category dropdown from the CSV headers
+function populateSelect() {
+    const select = document.getElementById('categorySelect');
+    select.innerHTML = ''; // Clear old options
+    
+    // Filter out the 'Year' column from the list
+    const categoryHeaders = headers.filter(h => h.toLowerCase() !== 'year');
+    
+    categoryHeaders.forEach(head => {
+        const opt = document.createElement('option');
+        opt.value = head;
+        opt.textContent = head; // Use the exact name from the file
+        select.appendChild(opt);
+    });
+}
+
+// Auto-load the default CSV file
+async function tryLoadDefaultCSV() {
+    try {
+        const response = await fetch(DEFAULT_FILE);
+        if (!response.ok) {
+            throw new Error(`File not found or unreadable: ${response.statusText}`);
+        }
+        const text = await response.text();
+        processData(text);
+    } catch (err) {
+        console.error("Could not auto-load data.csv:", err);
+        plotMessage.innerHTML = "Could not find `data.csv`. Please upload the file manually using the button on the left.";
+    }
+}
+
+// build frames for plotly
+function buildFrames(category){
+  const frames = [];
+  
+  // 1. Get X and Y data
+  const xs = dataset.map(row => Number(row['Year']));
+  const ys = dataset.map(row => parseAsNumber(row[category])); // Get data from the selected column
+      
+  if (!ys.length) {
+      alert(`No data found for category: "${category}"`);
+      return { frames: [], allTrace: null };
+  }
+
+  const yValues = ys.filter(v => v > 0);
+  const yMin = yValues.length > 0 ? Math.min(...yValues) : 0;
+  const yMax = yValues.length > 0 ? Math.max(...yValues) : 1;
+
+  // 2. Create frames for animation
+  xs.forEach((year, i) => {
+    const yVal = ys[i];
+    frames.push({
+      name: year.toString(),
+      data: [{
+        x: [year],
+        y: [yVal],
+        z: [0],
+        mode: 'markers',
+        marker: { 
+          size: 20, 
+          color: yVal, 
+          colorscale: 'Reds',
+          showscale: true,
+          cmin: yMin,
+          cmax: yMax
+        },
+        text: [`${year}: ${yVal.toLocaleString()}`]
+      }]
+    });
+  });
+
+  // 3. Create the background trace
+  const allTrace = {
+    x: xs, 
+    y: ys, 
+    z: xs.map(()=>0),
+    mode:'markers+lines',
+    text: xs.map((y,i) => `${y}: ${ys[i].toLocaleString()}`),
+    hoverinfo: 'text',
+    marker:{ 
+      size: 8, 
+      opacity:0.5,
+      color: ys,
+      colorscale: 'Reds',
+      cmin: yMin,
+      cmax: yMax
+    },
+    line:{ width:2, color:'#9fb7db' },
+    name: category
+  };
+
+  return {frames, allTrace};
+}
+
+// render plotly animation
+function renderPlot(category){
+  plotMessage.innerHTML = ''; // Clear any messages
+  const {frames, allTrace} = buildFrames(category);
+  
+  if (!allTrace) return; // Don't render if no data
+
+  const sortedYears = allTrace.x.sort((a,b) => a - b);
+
+  const layout = {
+    paper_bgcolor: '#081226', /* Match plot panel */ 
+    plot_bgcolor:'#081226',
+    font: { color: '#e6eef8' },
+    scene: {
+      xaxis:{ title:'Year', color:'#cfe3ff', gridcolor:'#16324a' },
+      yaxis:{ title: category.replace(/_/g,' '), color:'#cfe3ff', gridcolor:'#16324a', autorange:true, type: 'linear' },
+      zaxis:{ title:'Z (unused)', color:'#cfe3ff', gridcolor:'#16324a', range: [-1, 1] }, // Lock Z-axis
+      camera:{ eye: {x:1.7, y:1.2, z:0.8} }
+    },
+    title: `Animated: ${category.replace(/_/g,' ')} (2001–2022)`,
+    updatemenus: [{
+      y:1, x:0.8, showactive:false,
+      type:'buttons', buttons:[
+        {label:'Play', method:'animate', args:[null,{fromcurrent:true, frame:{duration:233, redraw:false}, transition:{duration:100}}]},
+        {label:'Pause', method:'animate', args:[[null], {mode:'immediate', frame:{duration:0}, transition:{duration:0}}]}
+      ]
+    }],
+    sliders:[{
+      pad:{t:30}, currentvalue:{prefix:'Year: '},
+      steps: sortedYears.map((y, i)=>({ label:y, method:'animate', args:[[y.toString()], {mode:'immediate', frame:{duration:300, redraw:false}, transition:{duration:200}}] }))
+    }]
+  };
+
+  const data = [allTrace];
+  const initial = frames[0] ? frames[0].data : [];
+
+  Plotly.newPlot('plot', data.concat(initial), layout).then(() => {
+    Plotly.addFrames('plot', frames);
+  });
+}
+
+// wire up file input
+document.getElementById('fileInput').addEventListener('change', async (ev)=>{
+  const f = ev.target.files[0];
+  if(f) {
+      const text = await f.text();
+      processData(text);
+  }
+});
+
+// wire up render button
+document.getElementById('btnRender').addEventListener('click', () => {
+    if(dataset.length === 0){
+        alert("No data loaded. Please upload your data.csv file.");
+        return;
+    }
+    const category = document.getElementById('categorySelect').value;
+    if (!category) {
+        alert("Could not find any categories to plot.");
+        return;
+    }
+    renderPlot(category);
+});
+
+// Call the auto-load function when the script runs
+tryLoadDefaultCSV();
+
+</script>
+</body>
+</html>
